@@ -1,19 +1,37 @@
 pluginManagement {
-    // as defined in 'gradle.properties'
-    val kotlinVersion: String by settings
-    val kspVersion: String by settings
-    plugins {
-        id("com.google.devtools.ksp") version kspVersion apply false
-        kotlin("jvm") version kotlinVersion apply false
-        kotlin("multiplatform") version kotlinVersion apply false
-    }
     repositories {
         gradlePluginPortal()
         google()
     }
+
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id.startsWith("com.android.library")) {
+                useModule("com.android.tools.build:gradle:${requested.version}")
+            }
+        }
+    }
 }
 
 dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            version("ksp", "1.6.21-1.0.5")
+            version("kotlin", "1.6.21")
+            version("agp", "7.0.1")
+
+            library("ksp-api", "com.google.devtools.ksp", "symbol-processing-api").versionRef("ksp")
+
+            plugin("ksp", "com.google.devtools.ksp").versionRef("ksp")
+            plugin("androidlib", "com.android.library").versionRef("agp")
+            plugin("kmp", "org.jetbrains.kotlin.multiplatform").versionRef("kotlin")
+            plugin("jvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
+        }
+        create("androidConfig") {
+            version("compileSdk", "31")
+        }
+    }
+
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
@@ -23,6 +41,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "kuri"
 
-include(":annotations")
+include(":api")
 include(":processor")
-include(":client")
+include(":jvmconsumer")
+include(":kmptestlib")

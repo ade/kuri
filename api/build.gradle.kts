@@ -1,9 +1,10 @@
 plugins {
     kotlin("multiplatform")
-    id("com.android.library")
+    alias(libs.plugins.androidlib)
 }
 
-group = "se.ade.kuri"
+val groupId = "se.ade.kuri"
+group = groupId
 
 kotlin {
     jvm()
@@ -12,7 +13,7 @@ kotlin {
 }
 
 android {
-    compileSdk = 31
-    namespace = "se.ade.kuri"
+    compileSdk = androidConfig.versions.compileSdk.get().toInt()
+    namespace = groupId
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 }
