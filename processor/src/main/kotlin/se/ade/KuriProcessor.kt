@@ -5,7 +5,7 @@ import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
-import se.ade.kuri.Uri
+import se.ade.kuri.UriTemplate
 import se.ade.kuri.Kuri
 import se.ade.kuri.KuriInternals
 import se.ade.kuri.UriProvider
@@ -71,15 +71,15 @@ class KuriProcessor(
 
             val classFunctions = classDeclaration.getAllFunctions().filter { it.isAbstract }
             assert(classFunctions.all {
-                it.isAnnotationPresent(Uri::class)
+                it.isAnnotationPresent(UriTemplate::class)
             }) {
-                "All abstract functions must implement ${Uri::class.simpleName} in $classPackageName.$className "
+                "All abstract functions must implement ${UriTemplate::class.simpleName} in $classPackageName.$className "
             }
 
-            assert(classDeclaration.getAllFunctions().filter { it.isAnnotationPresent(Uri::class) }.all {
+            assert(classDeclaration.getAllFunctions().filter { it.isAnnotationPresent(UriTemplate::class) }.all {
                 it.isAbstract
             }) {
-                "Only abstract functions may implement ${Uri::class.simpleName} in $classPackageName.$className"
+                "Only abstract functions may implement ${UriTemplate::class.simpleName} in $classPackageName.$className"
             }
 
             //file += "import $classPackageName.$className\n"

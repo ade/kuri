@@ -4,6 +4,7 @@ pluginManagement {
         google()
     }
 
+    //Configure the android library plugin so it resolves
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id.startsWith("com.android.library")) {
@@ -16,8 +17,8 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("ksp", "1.6.21-1.0.5")
-            version("kotlin", "1.6.21")
+            version("ksp", "1.7.21-1.0.8")
+            version("kotlin", "1.7.21")
             version("agp", "7.0.1")
 
             library("ksp-api", "com.google.devtools.ksp", "symbol-processing-api").versionRef("ksp")

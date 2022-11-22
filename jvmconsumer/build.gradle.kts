@@ -24,5 +24,6 @@ ksp {
 
 dependencies {
     implementation(project(":api"))
+    implementation(project(":kmptestlib"))
     ksp(project(":processor"))
 }
