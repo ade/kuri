@@ -2,6 +2,7 @@ package se.ade
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.isInternal
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -82,9 +83,15 @@ class KuriProcessor(
                 "Only abstract functions may implement ${UriTemplate::class.simpleName} in $classPackageName.$className"
             }
 
+            val internalModifier = if(classDeclaration.isInternal())
+                "internal "
+            else
+                ""
+
             //file += "import $classPackageName.$className\n"
             file += "import $kuriPackageName.*\n"
             file += "\n"
+            file += internalModifier
             file += "class Kuri${className}: $className {\n"
 
             classFunctions.forEach { prop ->
