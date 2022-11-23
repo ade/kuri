@@ -65,10 +65,10 @@ class KuriProcessor(
 
             val classPackageName = classDeclaration.packageName.asString()
             val className = classDeclaration.simpleName.getShortName()
-
-            val src = classDeclaration.containingFile?.let { listOf(it) } ?: listOf()
+            val srcFiles = classDeclaration.containingFile?.let { listOf(it) } ?: listOf()
 
             val poetFile = FileSpec.builder(classPackageName, "Kuri$className")
+
             val poetClass = TypeSpec.classBuilder("Kuri$className")
                 .addSuperinterface(classDeclaration.toClassName())
 
@@ -94,7 +94,7 @@ class KuriProcessor(
 
             poetFile.addType(poetClass.build())
 
-            poetFile.build().writeTo(codeGenerator, aggregating = false, originatingKSFiles = src)
+            poetFile.build().writeTo(codeGenerator, aggregating = false, originatingKSFiles = srcFiles)
         }
 
         private fun functionErrorReference(func: KSFunctionDeclaration): String {
@@ -129,12 +129,11 @@ class KuriProcessor(
             }
 
             // rebuild template string to internal format
-            val internalToken = KuriInternals.TOKEN.replace("%", "%%") //Poet no like %
             var templateInternal = template
             paramNames.forEach {
                 templateInternal = templateInternal.replace(
                     "${placeholderStartToken}$it${placeholderEndToken}",
-                    "$internalToken$it$internalToken"
+                    "${KuriInternals.BEGIN_TOKEN}$it${KuriInternals.END_TOKEN}"
                 )
             }
 
@@ -150,14 +149,12 @@ class KuriProcessor(
             }
 
             val statement = buildString {
-                append("return %L.build(template = \"")
-                append(templateInternal.replace("$", "\$"))
-                append("\", ")
+                append("return %T.build(template = \"%L\", ")
                 append(paramNames.joinToString(", ") { s -> "\"$s\" to $s" })
                 append(")")
             }
 
-            impl.addStatement(statement, KuriMemberName)
+            impl.addStatement(statement, KuriMemberName, templateInternal)
 
             return impl.build()
         }

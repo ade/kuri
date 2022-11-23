@@ -1,13 +1,15 @@
 package se.ade.kuri
 
 private val ALLOWED_PLAIN_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9')) + listOf('-', '.', '_', '~')
-private const val TOKEN = KuriInternals.TOKEN
+
+private const val BEGIN_TOKEN = KuriInternals.BEGIN_TOKEN
+private const val END_TOKEN = KuriInternals.END_TOKEN
 
 object Kuri {
     fun build(template: String, vararg tokens: Pair<String, Any>): String {
         var output = template
         tokens.forEach {
-            output = output.replace("$TOKEN${it.first}$TOKEN", format(it.second))
+            output = output.replace("$BEGIN_TOKEN${it.first}$END_TOKEN", format(it.second))
         }
         return output
     }

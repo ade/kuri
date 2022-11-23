@@ -6,4 +6,7 @@ import se.ade.kuri.UriProvider
 internal interface CommonPaths {
     @UriTemplate("api/{param}/resource")
     fun helloWorld(param: String): String
+
+    @UriTemplate("root/{something}/path")
+    fun test(something: Int): String
 }
