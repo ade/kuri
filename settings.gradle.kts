@@ -20,8 +20,11 @@ dependencyResolutionManagement {
             version("ksp", "1.7.21-1.0.8")
             version("kotlin", "1.7.21")
             version("agp", "7.0.1")
+            version("kotlinpoet", "1.12.0")
 
             library("ksp-api", "com.google.devtools.ksp", "symbol-processing-api").versionRef("ksp")
+            library("kotlinpoet", "com.squareup", "kotlinpoet").versionRef("kotlinpoet")
+            library("kotlinpoet_ksp", "com.squareup", "kotlinpoet-ksp").versionRef("kotlinpoet")
 
             plugin("ksp", "com.google.devtools.ksp").versionRef("ksp")
             plugin("androidlib", "com.android.library").versionRef("agp")

@@ -2,10 +2,13 @@ package se.ade
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
-import com.google.devtools.ksp.isInternal
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
+import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.writeTo
 import se.ade.kuri.UriTemplate
 import se.ade.kuri.Kuri
 import se.ade.kuri.KuriInternals
@@ -60,15 +63,11 @@ class KuriProcessor(
 
             val classPackageName = classDeclaration.packageName.asString()
             val className = classDeclaration.simpleName.getShortName()
+
             val src = classDeclaration.containingFile?.let { arrayOf(it) } ?: arrayOf()
 
-            val file = codeGenerator.createNewFile(
-                dependencies = Dependencies(aggregating = false, *src),
-                packageName = classPackageName,
-                fileName = "Kuri$className"
-            )
-
-            file += "package $classPackageName\n"
+            val poetFile = FileSpec.builder(classPackageName, "Kuri$className")
+            val poetClass = TypeSpec.classBuilder("Kuri$className")
 
             val classFunctions = classDeclaration.getAllFunctions().filter { it.isAbstract }
             assert(classFunctions.all {
@@ -83,26 +82,24 @@ class KuriProcessor(
                 "Only abstract functions may implement ${UriTemplate::class.simpleName} in $classPackageName.$className"
             }
 
-            val internalModifier = if(classDeclaration.isInternal())
-                "internal "
-            else
-                ""
+            poetClass.addModifiers(KModifier.INTERNAL)
 
-            //file += "import $classPackageName.$className\n"
-            file += "import $kuriPackageName.*\n"
-            file += "\n"
-            file += internalModifier
-            file += "class Kuri${className}: $className {\n"
-
-            classFunctions.forEach { prop ->
-                visitFunction(file, prop)
+            classFunctions.forEach {
+                implementFunction(poetClass, it)
             }
 
-            file += "}\n"
-            file.close()
+            poetClass.addSuperinterface(classDeclaration.toClassName())
+
+            poetFile.addType(poetClass.build())
+            poetFile.build().writeTo(codeGenerator, aggregating = false, originatingKSFiles = src.toList())
         }
 
-        private fun visitFunction(file: OutputStream, func: KSFunctionDeclaration) {
+        private fun functionErrorReference(func: KSFunctionDeclaration): String {
+            val location = func.location as? FileLocation
+            return "function ${func}, declared at ${location?.filePath}:${location?.lineNumber}"
+        }
+
+        private fun implementFunction(poetClass: TypeSpec.Builder, func: KSFunctionDeclaration) {
             if(func.returnType?.resolve().toString() != "String") {
                 throw RuntimeException("${functionErrorReference(func)} must return a String.")
             }
@@ -129,7 +126,7 @@ class KuriProcessor(
             }
 
             // rebuild template string to internal format
-            val internalToken = KuriInternals.TOKEN
+            val internalToken = KuriInternals.TOKEN.replace("%", "%%") //Poet no like %
             var templateInternal = template
             paramNames.forEach {
                 templateInternal = templateInternal.replace(
@@ -138,16 +135,18 @@ class KuriProcessor(
                 )
             }
 
-            // arguments list compiled, e.g. "x: String, y: Int"
-            val paramsDeclaration = func.parameters.joinToString(", ") {
+            val implementedFunc = FunSpec.builder(funName)
+            func.parameters.forEach {
                 val paramName = it.name!!.getShortName()
-                val paramType = it.type.resolve().declaration.qualifiedName!!.asString()
+                val paramType = it.type.resolve()
 
-                "$paramName: $paramType"
+                implementedFunc.addParameter(paramName, paramType.toTypeName())
             }
 
-            val expression = buildString {
-                append(KuriClassName)
+
+            val statement = buildString {
+                append("return ")
+                append("%L")
                 append(".build(template = \"")
                 append(templateInternal.replace("$", "\$"))
                 append("\", ")
@@ -155,12 +154,13 @@ class KuriProcessor(
                 append(")")
             }
 
-            file += "\toverride fun $funName($paramsDeclaration) = $expression\n"
-        }
+            val kuri = MemberName("se.ade.kuri", "Kuri")
 
-        private fun functionErrorReference(func: KSFunctionDeclaration): String {
-            val location = func.location as? FileLocation
-            return "function ${func}, declared at ${location?.filePath}:${location?.lineNumber}"
+            implementedFunc.addStatement(statement, kuri)
+            implementedFunc.returns(String::class)
+
+            implementedFunc.addModifiers(KModifier.OVERRIDE)
+            poetClass.addFunction(implementedFunc.build())
         }
     }
 }

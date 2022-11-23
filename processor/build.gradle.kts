@@ -22,6 +22,8 @@ dependencies {
     implementation(project(":api"))
 
     implementation(libs.ksp.api)
+    implementation(libs.kotlinpoet)
+    implementation(libs.kotlinpoet.ksp)
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("io.kotest:kotest-assertions-core:5.1.0")
