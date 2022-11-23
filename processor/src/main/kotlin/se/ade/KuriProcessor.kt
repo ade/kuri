@@ -2,6 +2,7 @@ package se.ade
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.isInternal
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -18,6 +19,7 @@ import java.io.OutputStream
 private const val kuriPackageName = "se.ade.kuri"
 private val kuriProviderName = UriProvider::class.simpleName
 private val KuriClassName = Kuri::class.simpleName!!
+private val KuriMemberName = Kuri::class.asTypeName()
 
 private const val DEFAULT_PLACEHOLDER_START_TOKEN = "{"
 private const val DEFAULT_PLACEHOLDER_END_TOKEN = "}"
@@ -64,13 +66,17 @@ class KuriProcessor(
             val classPackageName = classDeclaration.packageName.asString()
             val className = classDeclaration.simpleName.getShortName()
 
-            val src = classDeclaration.containingFile?.let { arrayOf(it) } ?: arrayOf()
+            val src = classDeclaration.containingFile?.let { listOf(it) } ?: listOf()
 
             val poetFile = FileSpec.builder(classPackageName, "Kuri$className")
             val poetClass = TypeSpec.classBuilder("Kuri$className")
+                .addSuperinterface(classDeclaration.toClassName())
 
-            val classFunctions = classDeclaration.getAllFunctions().filter { it.isAbstract }
-            assert(classFunctions.all {
+            if(classDeclaration.isInternal())
+                poetClass.addModifiers(KModifier.INTERNAL)
+
+            val memberFunctions = classDeclaration.getAllFunctions().filter { it.isAbstract }
+            assert(memberFunctions.all {
                 it.isAnnotationPresent(UriTemplate::class)
             }) {
                 "All abstract functions must implement ${UriTemplate::class.simpleName} in $classPackageName.$className "
@@ -82,16 +88,13 @@ class KuriProcessor(
                 "Only abstract functions may implement ${UriTemplate::class.simpleName} in $classPackageName.$className"
             }
 
-            poetClass.addModifiers(KModifier.INTERNAL)
-
-            classFunctions.forEach {
-                implementFunction(poetClass, it)
+            memberFunctions.forEach {
+                poetClass.addFunction(implementFunction(it))
             }
 
-            poetClass.addSuperinterface(classDeclaration.toClassName())
-
             poetFile.addType(poetClass.build())
-            poetFile.build().writeTo(codeGenerator, aggregating = false, originatingKSFiles = src.toList())
+
+            poetFile.build().writeTo(codeGenerator, aggregating = false, originatingKSFiles = src)
         }
 
         private fun functionErrorReference(func: KSFunctionDeclaration): String {
@@ -99,19 +102,19 @@ class KuriProcessor(
             return "function ${func}, declared at ${location?.filePath}:${location?.lineNumber}"
         }
 
-        private fun implementFunction(poetClass: TypeSpec.Builder, func: KSFunctionDeclaration) {
-            if(func.returnType?.resolve().toString() != "String") {
-                throw RuntimeException("${functionErrorReference(func)} must return a String.")
+        private fun implementFunction(def: KSFunctionDeclaration): FunSpec {
+            if(def.returnType?.resolve().toString() != "String") {
+                throw RuntimeException("${functionErrorReference(def)} must return a String.")
             }
 
-            val funName = func.simpleName.getShortName()
+            val funName = def.simpleName.getShortName()
 
-            val template = (func.annotations.firstOrNull()?.arguments?.firstOrNull()?.value as? String)
-                ?: throw java.lang.RuntimeException("Can't read template string: ${functionErrorReference(func)}")
+            val template = (def.annotations.firstOrNull()?.arguments?.firstOrNull()?.value as? String)
+                ?: throw java.lang.RuntimeException("Can't read template string: ${functionErrorReference(def)}")
 
-            val paramNames = func.parameters.map {
+            val paramNames = def.parameters.map {
                 it.name?.getShortName()
-                    ?: throw IllegalArgumentException("Parameters must be named. ${functionErrorReference(func)}")
+                    ?: throw IllegalArgumentException("Parameters must be named. ${functionErrorReference(def)}")
             }
 
             val placeholders = TokenUtil.getTokensFromTemplate(template, placeholderStartToken, placeholderEndToken)
@@ -122,7 +125,7 @@ class KuriProcessor(
             assert(paramSet == placeholderSet) {
                 "Parameters should match placeholders.\n" +
                         "Parameters: $paramNames, placeholders: $placeholders\n" +
-                        "(${functionErrorReference(func)})"
+                        "(${functionErrorReference(def)})"
             }
 
             // rebuild template string to internal format
@@ -135,32 +138,28 @@ class KuriProcessor(
                 )
             }
 
-            val implementedFunc = FunSpec.builder(funName)
-            func.parameters.forEach {
+            val impl = FunSpec.builder(funName)
+                .addModifiers(KModifier.OVERRIDE)
+                .returns(String::class)
+
+            def.parameters.forEach {
                 val paramName = it.name!!.getShortName()
                 val paramType = it.type.resolve()
 
-                implementedFunc.addParameter(paramName, paramType.toTypeName())
+                impl.addParameter(paramName, paramType.toTypeName())
             }
 
-
             val statement = buildString {
-                append("return ")
-                append("%L")
-                append(".build(template = \"")
+                append("return %L.build(template = \"")
                 append(templateInternal.replace("$", "\$"))
                 append("\", ")
                 append(paramNames.joinToString(", ") { s -> "\"$s\" to $s" })
                 append(")")
             }
 
-            val kuri = MemberName("se.ade.kuri", "Kuri")
+            impl.addStatement(statement, KuriMemberName)
 
-            implementedFunc.addStatement(statement, kuri)
-            implementedFunc.returns(String::class)
-
-            implementedFunc.addModifiers(KModifier.OVERRIDE)
-            poetClass.addFunction(implementedFunc.build())
+            return impl.build()
         }
     }
 }
