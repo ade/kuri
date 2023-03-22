@@ -44,7 +44,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "kuri"
 
-include(":api")
-include(":processor")
+include(":kuri-api")
+include(":kuri-processor")
 include(":jvmconsumer")
 include(":kmptestlib")
+
+includeBuild("convention-plugins")

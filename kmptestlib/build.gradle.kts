@@ -17,7 +17,7 @@ kotlin {
             kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 
             dependencies {
-                implementation(project(":api"))
+                implementation(project(":kuri-api"))
             }
         }
     }
@@ -42,5 +42,5 @@ android {
 
 dependencies {
     //Adds the ksp processor to commonMain sourceset.
-    add("kspCommonMainMetadata", project(":processor"))
+    add("kspCommonMainMetadata", project(":kuri-processor"))
 }

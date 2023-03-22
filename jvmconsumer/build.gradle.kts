@@ -23,7 +23,7 @@ ksp {
 }
 
 dependencies {
-    implementation(project(":api"))
+    implementation(project(":kuri-api"))
     implementation(project(":kmptestlib"))
-    ksp(project(":processor"))
+    ksp(project(":kuri-processor"))
 }

@@ -1,16 +1,14 @@
 plugins {
     kotlin("jvm")
     id("maven-publish")
+    id("convention.publication")
 }
-
-val kspVersion: String by project
-version = project.properties["version"]!!.toString()
 
 project.extensions.getByType<PublishingExtension>().apply {
     publications {
         register<MavenPublication>("release") {
             groupId = project.properties["groupId"]!!.toString()
-            artifactId = "processor"
+            artifactId = "kuri-processor"
             version = project.properties["version"]!!.toString()
 
             from(components["java"])
@@ -19,7 +17,7 @@ project.extensions.getByType<PublishingExtension>().apply {
 }
 
 dependencies {
-    implementation(project(":api"))
+    implementation(project(":kuri-api"))
 
     implementation(libs.ksp.api)
     implementation(libs.kotlinpoet)

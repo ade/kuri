@@ -1,10 +1,10 @@
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.androidlib)
-    id("maven-publish")
+    id("convention.publication")
 }
 
-val groupId = "se.ade.kuri"
+val groupId = project.properties["groupId"]!!.toString()
 group = groupId
 version = project.properties["version"]!!.toString()
 
