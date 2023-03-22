@@ -17,8 +17,8 @@ pluginManagement {
 dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
-            version("ksp", "1.7.21-1.0.8")
-            version("kotlin", "1.7.21")
+            version("ksp", "1.8.0-1.0.9")
+            version("kotlin", "1.8.0")
             version("agp", "7.0.1")
             version("kotlinpoet", "1.12.0")
 
@@ -36,7 +36,6 @@ dependencyResolutionManagement {
         }
     }
 
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
