@@ -4,14 +4,21 @@ plugins {
     id("convention.publication")
 }
 
+java {
+    withJavadocJar()
+
+    //Creates sourcesJar task
+    withSourcesJar()
+}
+
 project.extensions.getByType<PublishingExtension>().apply {
     publications {
-        register<MavenPublication>("release") {
+        create<MavenPublication>("kuri") {
             groupId = project.properties["groupId"]!!.toString()
-            artifactId = "kuri-processor"
-            version = project.properties["version"]!!.toString()
+            from(components["kotlin"])
 
-            from(components["java"])
+            //Doesn't get uploaded if we don't specify it explicitly for some reason
+            artifact(tasks.getByName("sourcesJar"))
         }
     }
 }
