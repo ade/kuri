@@ -8,18 +8,13 @@ import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.toClassName
-import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.writeTo
-import se.ade.kuri.UriTemplate
-import se.ade.kuri.Kuri
-import se.ade.kuri.KuriInternals
-import se.ade.kuri.UriProvider
+import se.ade.kuri.*
+import se.ade.kuri.exceptions.KuriReturnTypeException
 import java.io.OutputStream
 
 private const val kuriPackageName = "se.ade.kuri"
 private val kuriProviderName = UriProvider::class.simpleName
-private val KuriClassName = Kuri::class.simpleName!!
-private val KuriMemberName = Kuri::class.asTypeName()
 
 private const val DEFAULT_PLACEHOLDER_START_TOKEN = "{"
 private const val DEFAULT_PLACEHOLDER_END_TOKEN = "}"
@@ -29,6 +24,8 @@ class KuriProcessor(
     private val logger: KSPLogger,
     private val codeGenerator: CodeGenerator,
 ) : SymbolProcessor {
+
+    val uriTemplateFunctionFactory = UriTemplateFunctionFactory(logger)
 
     val placeholderStartToken = option("placeholder.start")
         ?: DEFAULT_PLACEHOLDER_START_TOKEN
@@ -104,7 +101,7 @@ class KuriProcessor(
 
         private fun implementFunction(def: KSFunctionDeclaration): FunSpec {
             if(def.returnType?.resolve().toString() != "String") {
-                throw RuntimeException("${functionErrorReference(def)} must return a String.")
+                throw KuriReturnTypeException("${functionErrorReference(def)} must return a String.")
             }
 
             val funName = def.simpleName.getShortName()
@@ -112,51 +109,34 @@ class KuriProcessor(
             val template = (def.annotations.firstOrNull()?.arguments?.firstOrNull()?.value as? String)
                 ?: throw java.lang.RuntimeException("Can't read template string: ${functionErrorReference(def)}")
 
-            val paramNames = def.parameters.map {
+            val pathParamNames = def.parameters.filter {
+                !it.isAnnotationPresent(Query::class)
+            }.map {
                 it.name?.getShortName()
                     ?: throw IllegalArgumentException("Parameters must be named. ${functionErrorReference(def)}")
             }
 
             val placeholders = TokenUtil.getTokensFromTemplate(template, placeholderStartToken, placeholderEndToken)
 
-            val paramSet = paramNames.toSet()
+            val paramSet = pathParamNames.toSet()
             val placeholderSet = placeholders.toSet()
 
             assert(paramSet == placeholderSet) {
                 "Parameters should match placeholders.\n" +
-                        "Parameters: $paramNames, placeholders: $placeholders\n" +
+                        "Parameters: $pathParamNames, placeholders: $placeholders\n" +
                         "(${functionErrorReference(def)})"
             }
 
             // rebuild template string to internal format
             var templateInternal = template
-            paramNames.forEach {
+            pathParamNames.forEach {
                 templateInternal = templateInternal.replace(
                     "${placeholderStartToken}$it${placeholderEndToken}",
                     "${KuriInternals.BEGIN_TOKEN}$it${KuriInternals.END_TOKEN}"
                 )
             }
 
-            val impl = FunSpec.builder(funName)
-                .addModifiers(KModifier.OVERRIDE)
-                .returns(String::class)
-
-            def.parameters.forEach {
-                val paramName = it.name!!.getShortName()
-                val paramType = it.type.resolve()
-
-                impl.addParameter(paramName, paramType.toTypeName())
-            }
-
-            val statement = buildString {
-                append("return %T.build(template = \"%L\", ")
-                append(paramNames.joinToString(", ") { s -> "\"$s\" to $s" })
-                append(")")
-            }
-
-            impl.addStatement(statement, KuriMemberName, templateInternal)
-
-            return impl.build()
+            return uriTemplateFunctionFactory.create(funName, templateInternal, def.parameters)
         }
     }
 }

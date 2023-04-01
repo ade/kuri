@@ -20,6 +20,12 @@ kotlin {
                 implementation(project(":kuri-api"))
             }
         }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation("io.kotest:kotest-assertions-core:5.1.0")
+            }
+        }
     }
 }
 
@@ -43,4 +49,18 @@ android {
 dependencies {
     //Adds the ksp processor to commonMain sourceset.
     add("kspCommonMainMetadata", project(":kuri-processor"))
+}
+
+tasks.named<Test>("jvmTest") {
+    testLogging {
+        showExceptions = true
+        showStandardStreams = true
+
+        events = setOf(
+            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+        )
+
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }

@@ -10,3 +10,10 @@ buildscript {
         google()
     }
 }
+
+tasks {
+    register("kuritests") {
+        dependsOn(":kmptestlib:cleanJvmTest")
+        dependsOn(":kmptestlib:jvmTest")
+    }
+}

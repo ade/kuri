@@ -1,35 +1,92 @@
 package se.ade.kuri
 
-private val ALLOWED_PLAIN_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9')) + listOf('-', '.', '_', '~')
+private val ALPHA_AND_DIGIT_CHARS = (('a'..'z') + ('A'..'Z') + ('0'..'9'))
 
-private const val BEGIN_TOKEN = KuriInternals.BEGIN_TOKEN
-private const val END_TOKEN = KuriInternals.END_TOKEN
+/**
+ * RFC 3986 section 2.3 Unreserved Characters (January 2005)
+ * https://tools.ietf.org/html/rfc3986#section-2.3
+ */
+private val UNRESERVED_CHARS = listOf('-', '.', '_', '~') + ALPHA_AND_DIGIT_CHARS
+
+/**
+ * RFC 3986 section 2.2 Reserved Characters (January 2005)
+ */
+private val RESERVED_CHARS = setOf(
+    ':', '/', '?', '#', '[', ']', '@', // "gen-delims"
+    '!', '$', '&', '\'', '(', ')', '*', ',', ';', '=', // "sub-delims"
+)
+
+/**
+ * RFC3986, section 3.4 advises against percent-encoding '/' and '?' characters in a query component for readability.
+ */
+private val QUERY_PART_NEVER_ENCODE = listOf('?', '/') + UNRESERVED_CHARS
 
 object Kuri {
-    fun build(template: String, vararg tokens: Pair<String, Any>): String {
-        var output = template
-        tokens.forEach {
-            output = output.replace("$BEGIN_TOKEN${it.first}$END_TOKEN", format(it.second))
+    /**
+     * Encode a PATH parameter - a raw value that has been added as part of the path, but must be escaped
+     * in order to not interfere with the URI structure.
+     *
+     * Example where <parameter> denotes the value of the String sent as input here:
+     * http://example.com/message/<parameter>/text
+     */
+    fun encodeUrlPathParam(input: Any): String {
+        return when(input) {
+            is Int, is Long -> input.toString()
+            else -> encodeURLPathParameter(input.toString())
         }
-        return output
     }
-    fun format(it: Any?): String {
-        return when(it) {
-            is Char -> it.toString()
-            is Int -> it.toString()
-            is Long -> it.toString()
-            else -> encodeURLParameter(it.toString())
+
+    /**
+     * Encodes the "Query component" of a URI according to RFC 3986 part 3.4 ("percent encoding")
+     * The query component is the part of the URI after the first question mark ("?")
+     * e.g. XYZ in "http://example.com/url?XYZ"
+     *
+     * @param spaceToPlus Boolean when true: Encode space as the plus (+) sign,
+     * a special encoding used only for application/x-www-form-urlencoded content.
+     */
+    fun encodeUrlQuery(s: String) = encodeUrlQueryPart(s)
+
+    /**
+     * Encode a URL query parameter map, e.g. "http://example.com/url?a=1&b=2"
+     * Note: Custom assigner and separator chars will not be encoded.
+     */
+    fun encodeUrlKeyValues(map: Map<String,Any?>, assigner: Char = '=', separator: Char = '&')
+        = buildUrlKeyValuesEncoded(map, assigner, separator)
+}
+
+
+private fun encodeURLPathParameter(input: String): String {
+    return buildString {
+        input.forEach {
+            when (it) {
+                in UNRESERVED_CHARS -> append(it)
+                else -> it.percentEncode(this)
+            }
         }
     }
 }
 
-private fun encodeURLParameter(input: String, spaceAsPlus: Boolean = false): String {
-    return buildString {
+
+private fun encodeUrlQueryPart(input: String, spaceToPlus: Boolean = false): String {
+    return buildString(input.length * 2) {
         input.forEach {
-            when {
-                it in ALLOWED_PLAIN_CHARS -> append(it)
-                spaceAsPlus && it == ' ' -> append('+')
+            when (it) {
+                ' ' -> if (spaceToPlus) append('+') else append("%20")
+                in QUERY_PART_NEVER_ENCODE -> append(it)
                 else -> it.percentEncode(this)
+            }
+        }
+    }
+}
+
+private fun buildUrlKeyValuesEncoded(map: Map<String, Any?>, assigner: Char = '=', separator: Char = '&'): Any {
+    return buildString {
+        map.forEach {
+            if(it.value != null) {
+                if (this.isNotEmpty()) append(separator)
+                append(encodeUrlQueryPart(it.key))
+                append(assigner)
+                append(encodeUrlQueryPart(it.value.toString()))
             }
         }
     }
