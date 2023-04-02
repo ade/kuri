@@ -16,4 +16,14 @@ tasks {
         dependsOn(":kmptestlib:cleanJvmTest")
         dependsOn(":kmptestlib:jvmTest")
     }
+    register("publishSnapshot") {
+        dependsOn("kuritests")
+        dependsOn(":kuri-api:publishAllPublicationsToSonatypeSnapshotRepository")
+        dependsOn(":kuri-processor:publishAllPublicationsToSonatypeSnapshotRepository")
+    }
+    register("publishRelease") {
+        dependsOn("kuritests")
+        dependsOn(":kuri-api:publishAllPublicationsToSonatypeStagingRepository")
+        dependsOn(":kuri-processor:publishAllPublicationsToSonatypeStagingRepository")
+    }
 }
