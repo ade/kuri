@@ -8,6 +8,7 @@ import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.asTypeName
+import com.squareup.kotlinpoet.buildCodeBlock
 import com.squareup.kotlinpoet.ksp.toTypeName
 import se.ade.kuri.Kuri
 import se.ade.kuri.KuriInternals
@@ -23,7 +24,6 @@ sealed class PathFragment {
 @OptIn(KspExperimental::class)
 class UriTemplateFunctionFactory(val logger: KSPLogger) {
     fun create(funName: String, template: String, parameters: List<KSValueParameter>): FunSpec {
-        val queryParams = parameters.filter { it.isAnnotationPresent(Query::class) }
 
         val retFunc = FunSpec.builder(funName)
             .addModifiers(KModifier.OVERRIDE)
@@ -36,7 +36,71 @@ class UriTemplateFunctionFactory(val logger: KSPLogger) {
             retFunc.addParameter(paramName, paramType.toTypeName())
         }
 
-        val fragments = buildList<PathFragment> {
+        val queryParams = parameters.filter { it.isAnnotationPresent(Query::class) }
+
+        val fragments = divide(template)
+
+        val statement = buildCodeBlock {
+            beginControlFlow("return buildString(${template.length * 2 + queryParams.size * 16})")
+
+            fragments.forEach {
+                when(it) {
+                    is PathFragment.Literal -> addStatement("append(\"${it.value}\")")
+                    is PathFragment.Placeholder -> {
+                        addStatement("append(%T.encodeUrlPathParam(${it.name}))", KuriMemberName)
+                    }
+                }
+            }
+            val nullableQueryParams = queryParams.filter { it.type.resolve().isMarkedNullable }
+            val allNullable = queryParams == nullableQueryParams
+            if (queryParams.isNotEmpty()) {
+                if(allNullable) {
+                    val nullChecks = nullableQueryParams.joinToString(separator = " || ") { "${it.name?.getShortName()} != null" }
+                    beginControlFlow("if($nullChecks)")
+                }
+
+                addStatement("append('?')")
+
+                addStatement("append(%T.encodeUrlKeyValues(", KuriMemberName)
+                indent()
+                beginControlFlow("buildMap<String,Any?> {")
+
+                queryParams.forEach {
+                    val a = it.getAnnotationsByType(Query::class).singleOrNull()
+                        ?: throw IllegalArgumentException("${Query::class.simpleName} annotation specified incorrectly")
+
+                    val signatureName = it.name?.getShortName()
+                    val name = if (a.name != "") a.name else signatureName
+
+                    addStatement("""put("$name", $signatureName)""")
+                }
+
+                endControlFlow()
+                unindent()
+                addStatement("))")
+
+                if(allNullable) {
+                    endControlFlow()
+                }
+            }
+            endControlFlow()
+        }
+
+        retFunc.addCode(statement)
+
+        val kdocQueryString = if(queryParams.isNotEmpty())
+            "?" + queryParams.joinToString(prefix = "(", postfix = ")") {
+                it.name?.getShortName() + if(it.type.resolve().isMarkedNullable) "?" else ""
+            }
+        else ""
+
+        retFunc.addKdoc("URI Template: $template$kdocQueryString")
+
+        return retFunc.build()
+    }
+
+    private fun divide(template: String): List<PathFragment> {
+        return buildList {
             var inPlaceholder = false
             var position = 0
             val buffer = arrayOfNulls<Char>(template.length)
@@ -61,51 +125,5 @@ class UriTemplateFunctionFactory(val logger: KSPLogger) {
                 }
             }
         }
-
-        val queryParamSpace = if(queryParams.isNotEmpty()) 64 + queryParams.size * 32 else 0
-        val args = mutableListOf<Any>()
-
-        val statement = buildString(fragments.size * 16 + queryParamSpace) {
-            appendLine("return buildString(${template.length * 2}) {")
-            fragments.forEach {
-                when(it) {
-                    is PathFragment.Literal -> appendLine("\tappend(\"${it.value}\")")
-                    is PathFragment.Placeholder -> {
-                        args.add(KuriMemberName)
-                        appendLine("\tappend(%T.encodeUrlPathParam(${it.name}))")
-                    }
-                }
-            }
-            if (queryParams.isNotEmpty()) {
-                //If any query param != null, append "?"
-                append("\tif(")
-                append(queryParams.joinToString(separator = " || ") { "${it.name?.getShortName()} != null" })
-                appendLine(") {")
-                appendLine("\tappend('?')")
-
-                appendLine("\tappend(%T.encodeUrlKeyValues(buildMap<String,Any?> {")
-                args.add(KuriMemberName)
-
-                queryParams.forEach {
-                    val a = it.getAnnotationsByType(Query::class).singleOrNull()
-                        ?: throw IllegalArgumentException("${Query::class.simpleName} annotation specified incorrectly")
-
-                    val signatureName = it.name?.getShortName()
-                    val name = if (a.name != "") a.name else signatureName
-
-                    append("\t\t")
-                    appendLine("""put("$name", $signatureName)""")
-                }
-                appendLine("\t}))")
-                appendLine("\t}")
-            }
-            appendLine("}")
-        }
-
-        retFunc.addStatement(statement, *args.toTypedArray())
-
-        retFunc.addKdoc("URI Template: $template")
-
-        return retFunc.build()
     }
 }

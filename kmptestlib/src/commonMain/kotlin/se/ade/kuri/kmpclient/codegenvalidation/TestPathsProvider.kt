@@ -28,8 +28,14 @@ interface TestPathsProvider {
     fun queryParamOnlyNamed(@Query("namedParam") foobar: String): String
 
     @UriTemplate("somepath/static")
+    fun queryParamOnlyNamedNullable(@Query("namedParam") foobar: String?): String
+
+    @UriTemplate("somepath/static")
     fun queryParamOnlyNullable(@Query foobar: String?): String
 
     @UriTemplate("somepath/static")
     fun queryParamOnlyMultiNullable(@Query foo: String?, @Query bar: String?): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamOnlyMixedNullability(@Query foo: String, @Query bar: String?): String
 }

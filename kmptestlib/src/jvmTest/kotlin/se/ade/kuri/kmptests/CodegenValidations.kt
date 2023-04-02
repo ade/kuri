@@ -1,6 +1,5 @@
 package se.ade.kuri.kmptests
 
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import se.ade.kuri.kmpclient.codegenvalidation.KuriTestPathsProvider
@@ -70,6 +69,13 @@ class CodegenValidations {
     }
 
     @Test
+    fun `URI builder - query - named - nullable`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider()
+        impl.queryParamOnlyNamedNullable("myvalue") shouldBe "somepath/static?namedParam=myvalue"
+        impl.queryParamOnlyNamedNullable(null) shouldBe "somepath/static"
+    }
+
+    @Test
     fun `URI builder - query - nullable`() {
         val impl: TestPathsProvider = KuriTestPathsProvider()
         impl.queryParamOnlyNullable("myvalue") shouldBe "somepath/static?foobar=myvalue"
@@ -83,6 +89,13 @@ class CodegenValidations {
         impl.queryParamOnlyMultiNullable(null, null) shouldBe "somepath/static"
         impl.queryParamOnlyMultiNullable("first", null) shouldBe "somepath/static?foo=first"
         impl.queryParamOnlyMultiNullable(null, "second") shouldBe "somepath/static?bar=second"
+    }
+
+    @Test
+    fun `URI builder - query - mixed nullability`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider()
+        impl.queryParamOnlyMixedNullability("first", "second") shouldBe "somepath/static?foo=first&bar=second"
+        impl.queryParamOnlyMixedNullability("first", null) shouldBe "somepath/static?foo=first"
     }
 }
 
