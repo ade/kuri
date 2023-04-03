@@ -1,4 +1,4 @@
-package se.ade
+package se.ade.kuri.processor
 
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment

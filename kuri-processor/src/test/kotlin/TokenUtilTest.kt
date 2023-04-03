@@ -1,6 +1,6 @@
 import io.kotest.matchers.shouldBe
 import org.junit.Test
-import se.ade.TokenUtil
+import se.ade.kuri.processor.TokenUtil
 
 class TokenUtilTest {
     @Test

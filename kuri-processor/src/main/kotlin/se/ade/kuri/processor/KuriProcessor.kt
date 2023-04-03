@@ -1,4 +1,4 @@
-package se.ade
+package se.ade.kuri.processor
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.isAnnotationPresent
@@ -9,8 +9,11 @@ import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import se.ade.kuri.*
-import se.ade.kuri.exceptions.KuriReturnTypeException
+import se.ade.kuri.KuriInternals
+import se.ade.kuri.Query
+import se.ade.kuri.UriProvider
+import se.ade.kuri.UriTemplate
+import se.ade.kuri.processor.exceptions.KuriReturnTypeException
 import java.io.OutputStream
 
 private const val kuriPackageName = "se.ade.kuri"

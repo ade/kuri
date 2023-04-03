@@ -1,4 +1,4 @@
-package se.ade
+package se.ade.kuri.processor
 
 object TokenUtil {
     fun getTokensFromTemplate(template: String, startToken: String, endToken: String = ""): List<String> {
