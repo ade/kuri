@@ -92,11 +92,17 @@ private fun buildUrlKeyValuesEncoded(map: Map<String, Any?>, assigner: Char = '=
     }
 }
 
-private fun Char.percentEncode(to: StringBuilder) = to.apply {
-    val code = code and 0xff
-    append('%')
-    append(intToHexChar(code shr 4))
-    append(intToHexChar(code and 0x0f))
+private fun Char.percentEncode(sink: StringBuilder) {
+    toString().encodeToByteArray().forEach {
+        it.percentEncode(sink)
+    }
+}
+
+private fun Byte.percentEncode(sink: StringBuilder) = sink.let {
+    val code = toInt() and 0xff
+    it.append('%')
+    it.append(intToHexChar(code shr 4))
+    it.append(intToHexChar(code and 0x0f))
 }
 
 private fun intToHexChar(digit: Int): Char = when (digit) {

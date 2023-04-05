@@ -97,6 +97,32 @@ class CodegenValidations {
         impl.queryParamOnlyMixedNullability("first", "second") shouldBe "somepath/static?foo=first&bar=second"
         impl.queryParamOnlyMixedNullability("first", null) shouldBe "somepath/static?foo=first"
     }
+
+    @Test
+    fun `URI builder - path param - non ascii`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider()
+        impl.paramAtEnd("円") shouldBe "start/%E5%86%86"
+        impl.paramAtEnd("£") shouldBe "start/%C2%A3"
+        impl.paramAtEnd("円500") shouldBe "start/%E5%86%86500"
+        impl.paramAtEnd("99円") shouldBe "start/99%E5%86%86"
+        impl.paramAtEnd("a円b") shouldBe "start/a%E5%86%86b"
+        impl.paramAtEnd("£30") shouldBe "start/%C2%A330"
+        impl.paramAtEnd("99£") shouldBe "start/99%C2%A3"
+        impl.paramAtEnd("a£b") shouldBe "start/a%C2%A3b"
+    }
+
+    @Test
+    fun `URI builder - query param - non ascii`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider()
+        impl.queryParamOnly("円") shouldBe "somepath/static?foobar=%E5%86%86"
+        impl.queryParamOnly("£") shouldBe "somepath/static?foobar=%C2%A3"
+        impl.queryParamOnly("円500") shouldBe "somepath/static?foobar=%E5%86%86500"
+        impl.queryParamOnly("99円") shouldBe "somepath/static?foobar=99%E5%86%86"
+        impl.queryParamOnly("a円b") shouldBe "somepath/static?foobar=a%E5%86%86b"
+        impl.queryParamOnly("£30") shouldBe "somepath/static?foobar=%C2%A330"
+        impl.queryParamOnly("99£") shouldBe "somepath/static?foobar=99%C2%A3"
+        impl.queryParamOnly("a£b") shouldBe "somepath/static?foobar=a%C2%A3b"
+    }
 }
 
 class DoublingToString(private val value: Int) {
