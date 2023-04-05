@@ -19,7 +19,7 @@ interface TestPathsProvider {
     fun numberParamLong(number: Long): String
 
     @UriTemplate("path/{something}/data")
-    fun anyParam(something: Any): String
+    fun pathParamAny(something: Any): String
 
     @UriTemplate("somepath/static")
     fun queryParamOnly(@Query foobar: String): String
@@ -38,4 +38,16 @@ interface TestPathsProvider {
 
     @UriTemplate("somepath/static")
     fun queryParamOnlyMixedNullability(@Query foo: String, @Query bar: String?): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamBoolean(@Query foo: Boolean): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamInt(@Query foo: Int): String
+
+    @UriTemplate("somepath/{number}/static")
+    fun pathParamInt(number: Int): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamAny(@Query foo: Any): String
 }

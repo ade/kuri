@@ -31,6 +31,7 @@ object Kuri {
      */
     fun encodeUrlPathParam(input: Any): String {
         return when(input) {
+            is Boolean -> if(input) "1" else "0"
             is Int, is Long -> input.toString()
             else -> encodeURLPathParameter(input.toString())
         }
@@ -84,9 +85,15 @@ private fun buildUrlKeyValuesEncoded(map: Map<String, Any?>, assigner: Char = '=
         map.forEach {
             if(it.value != null) {
                 if (this.isNotEmpty()) append(separator)
+
+                val value: String = when (val input = it.value) {
+                    is Boolean -> if(input) "1" else "0"
+                    else -> it.value.toString()
+                }
+
                 append(encodeUrlQueryPart(it.key))
                 append(assigner)
-                append(encodeUrlQueryPart(it.value.toString()))
+                append(encodeUrlQueryPart(value))
             }
         }
     }
