@@ -9,10 +9,7 @@ import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.writeTo
-import se.ade.kuri.KuriInternals
-import se.ade.kuri.Query
-import se.ade.kuri.UriProvider
-import se.ade.kuri.UriTemplate
+import se.ade.kuri.*
 import se.ade.kuri.processor.exceptions.KuriReturnTypeException
 import java.io.OutputStream
 
@@ -69,11 +66,11 @@ class KuriProcessor(
 
             val poetFile = FileSpec.builder(classPackageName, "Kuri$className")
 
-            val poetClass = TypeSpec.classBuilder("Kuri$className")
+            val impl = TypeSpec.classBuilder("Kuri$className")
                 .addSuperinterface(classDeclaration.toClassName())
 
             if(classDeclaration.isInternal())
-                poetClass.addModifiers(KModifier.INTERNAL)
+                impl.addModifiers(KModifier.INTERNAL)
 
             val memberFunctions = classDeclaration.getAllFunctions().filter { it.isAbstract }
             assert(memberFunctions.all {
@@ -88,13 +85,50 @@ class KuriProcessor(
                 "Only abstract functions may implement ${UriTemplate::class.simpleName} in $classPackageName.$className"
             }
 
+            val metaClassSimpleName = "Kuri${className}Spec"
+            val templatesObjectBuilder = TypeSpec.objectBuilder(metaClassSimpleName)
+
             memberFunctions.forEach {
-                poetClass.addFunction(implementFunction(it))
+                impl.addFunction(implementFunction(it))
+                templatesObjectBuilder.addProperty(implementTemplateProperty(it))
             }
 
-            poetFile.addType(poetClass.build())
+            poetFile.addType(impl.build())
+            poetFile.addType(templatesObjectBuilder.build())
+
+            //Create extension function to get metadata
+            val metaClassName = ClassName(classPackageName, metaClassSimpleName)
+            val extFunSpec = PropertySpec.builder("_spec", metaClassName)
+                .receiver(classDeclaration.toClassName())
+                .getter(FunSpec.builder("get()").addCode("return $metaClassSimpleName").build())
+
+            if(classDeclaration.isInternal())
+                extFunSpec.addModifiers(KModifier.INTERNAL)
+
+            poetFile.addProperty(extFunSpec.build())
 
             poetFile.build().writeTo(codeGenerator, aggregating = false, originatingKSFiles = srcFiles)
+        }
+
+        private fun implementTemplateProperty(def: KSFunctionDeclaration): PropertySpec {
+            val funName = def.simpleName.getShortName()
+
+            val template = (def.annotations.firstOrNull()?.arguments?.firstOrNull()?.value as? String)
+                ?: throw java.lang.RuntimeException("Can't read template string: ${functionErrorReference(def)}")
+
+            val tokensMap = buildString {
+                append("mapOf(")
+
+                append(def.parameters.map { param ->
+                    "\"${param.name?.getShortName()}\" to ${param.type.resolve().toClassName()}::class"
+                }.joinToString(","))
+
+                append(")")
+            }
+
+            return PropertySpec.builder(funName, KuriTemplateSpec::class)
+                .initializer("KuriTemplateSpec(template = \"$template\", tokens = $tokensMap)")
+                .build()
         }
 
         private fun functionErrorReference(func: KSFunctionDeclaration): String {
