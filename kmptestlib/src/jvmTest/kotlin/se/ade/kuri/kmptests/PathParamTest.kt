@@ -8,7 +8,7 @@ import se.ade.kuri.kmpclient.codegenvalidation.TestPathsProvider
 class PathParamTest {
     @Test
     fun `URI builder`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.paramAtStart("foo") shouldBe "foo/end"
         impl.paramAtEnd("foo") shouldBe "start/foo"
         impl.paramInMiddle("foo") shouldBe "start/foo/end"
@@ -16,7 +16,7 @@ class PathParamTest {
 
     @Test
     fun `URI builder - percent encoding`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.paramAtStart("foo bar") shouldBe "foo%20bar/end"
         impl.paramAtEnd("foo bar") shouldBe "start/foo%20bar"
         impl.paramInMiddle("foo bar") shouldBe "start/foo%20bar/end"
@@ -24,7 +24,7 @@ class PathParamTest {
 
     @Test
     fun `URI builder - percent encoding - extended`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.paramAtStart("{foo bar?}") shouldBe "%7Bfoo%20bar%3F%7D/end"
         impl.paramAtEnd("{foobar?}") shouldBe "start/%7Bfoobar%3F%7D"
         impl.paramInMiddle("{foo bar/}") shouldBe "start/%7Bfoo%20bar%2F%7D/end"
@@ -32,7 +32,7 @@ class PathParamTest {
 
     @Test
     fun `URI builder - numbers`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.numberParamInt(0) shouldBe "number/0/data"
         impl.numberParamInt(42) shouldBe "number/42/data"
         impl.numberParamInt(-42) shouldBe "number/-42/data"
@@ -48,13 +48,13 @@ class PathParamTest {
 
     @Test
     fun `URI builder - path param - any`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.pathParamAny(DoublingToString(2)) shouldBe "path/4/data"
     }
 
     @Test
     fun `URI builder - path param - non ascii`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.paramAtEnd("円") shouldBe "start/%E5%86%86"
         impl.paramAtEnd("£") shouldBe "start/%C2%A3"
         impl.paramAtEnd("円500") shouldBe "start/%E5%86%86500"
@@ -66,14 +66,14 @@ class PathParamTest {
     }
     @Test
     fun `URI builder - path param - Int`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.pathParamInt(1) shouldBe "somepath/1/static"
         impl.pathParamInt(0) shouldBe "somepath/0/static"
     }
 
     @Test
     fun `URI builder - path param - Any - escaping`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.pathParamAny(MakesUnsafeChars()) shouldBe "path/%2Fhello%20world%20%26%20have%20a%20nice%20day%2F/data"
     }
 }

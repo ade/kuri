@@ -9,7 +9,7 @@ class QueryParamTest {
 
     @Test
     fun `URI builder - query`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnly("myvalue") shouldBe "somepath/static?foobar=myvalue"
         impl.queryParamOnly("value with spaces") shouldBe "somepath/static?foobar=value%20with%20spaces"
         impl.queryParamOnly("strange chars: {} % #") shouldBe "somepath/static?foobar=strange%20chars%3A%20%7B%7D%20%25%20%23"
@@ -19,27 +19,27 @@ class QueryParamTest {
 
     @Test
     fun `URI builder - query - named`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnlyNamed("myvalue") shouldBe "somepath/static?namedParam=myvalue"
     }
 
     @Test
     fun `URI builder - query - named - nullable`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnlyNamedNullable("myvalue") shouldBe "somepath/static?namedParam=myvalue"
         impl.queryParamOnlyNamedNullable(null) shouldBe "somepath/static"
     }
 
     @Test
     fun `URI builder - query - nullable`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnlyNullable("myvalue") shouldBe "somepath/static?foobar=myvalue"
         impl.queryParamOnlyNullable(null) shouldBe "somepath/static"
     }
 
     @Test
     fun `URI builder - query - multiple nullable`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnlyMultiNullable("first", "second") shouldBe "somepath/static?foo=first&bar=second"
         impl.queryParamOnlyMultiNullable(null, null) shouldBe "somepath/static"
         impl.queryParamOnlyMultiNullable("first", null) shouldBe "somepath/static?foo=first"
@@ -48,7 +48,7 @@ class QueryParamTest {
 
     @Test
     fun `URI builder - query - mixed nullability`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnlyMixedNullability("first", "second") shouldBe "somepath/static?foo=first&bar=second"
         impl.queryParamOnlyMixedNullability("first", null) shouldBe "somepath/static?foo=first"
     }
@@ -56,7 +56,7 @@ class QueryParamTest {
 
     @Test
     fun `URI builder - query param - non ascii`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamOnly("円") shouldBe "somepath/static?foobar=%E5%86%86"
         impl.queryParamOnly("£") shouldBe "somepath/static?foobar=%C2%A3"
         impl.queryParamOnly("円500") shouldBe "somepath/static?foobar=%E5%86%86500"
@@ -69,27 +69,27 @@ class QueryParamTest {
 
     @Test
     fun `URI builder - query param - boolean`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamBoolean(true) shouldBe "somepath/static?foo=1"
         impl.queryParamBoolean(false) shouldBe "somepath/static?foo=0"
     }
 
     @Test
     fun `URI builder - query param - Int`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamInt(1) shouldBe "somepath/static?foo=1"
         impl.queryParamInt(0) shouldBe "somepath/static?foo=0"
     }
 
     @Test
     fun `URI builder - query param - Any`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamAny(DoublingToString(1)) shouldBe "somepath/static?foo=2"
     }
 
     @Test
     fun `URI builder - query param - Any - escaping`() {
-        val impl: TestPathsProvider = KuriTestPathsProvider()
+        val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamAny(MakesUnsafeChars()) shouldBe "somepath/static?foo=/hello%20world%20%26%20have%20a%20nice%20day/"
     }
 }
