@@ -6,7 +6,7 @@ import se.ade.kuri.UriProvider
 import se.ade.kuri.kmpclient.KmpCommonPathsConsumer
 
 fun main() {
-    val impl: ExamplePaths = KuriExamplePaths()
+    val impl: ExamplePaths = KuriExamplePaths
     println("example1: " + impl.example1("My 100% /unsafe/ value!"))
     println("example2: " + impl.example2("token1!", "second token"))
     println("intExample1: " + impl.intExample1(123,456))
