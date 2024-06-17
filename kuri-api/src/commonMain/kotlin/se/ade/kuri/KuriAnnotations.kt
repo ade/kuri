@@ -15,3 +15,10 @@ annotation class UriTemplate(val template: String)
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.SOURCE)
 annotation class Query(val name: String = "")
+
+/**
+ * Keeps a value as-is, without url-encoding it, when used in a URL-parameter
+ */
+@Target(AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Unescaped

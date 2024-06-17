@@ -1,6 +1,7 @@
 package se.ade.kuri.kmpclient.codegenvalidation
 
 import se.ade.kuri.Query
+import se.ade.kuri.Unescaped
 import se.ade.kuri.UriProvider
 import se.ade.kuri.UriTemplate
 
@@ -20,6 +21,9 @@ interface TestPathsProvider {
 
     @UriTemplate("path/{something}/data")
     fun pathParamAny(something: Any): String
+
+    @UriTemplate("begin/{rawPath}/end")
+    fun pathParamUnescaped(@Unescaped rawPath: String): String
 
     @UriTemplate("somepath/static")
     fun queryParamOnly(@Query foobar: String): String

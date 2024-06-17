@@ -13,6 +13,7 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 import se.ade.kuri.Kuri
 import se.ade.kuri.KuriInternals
 import se.ade.kuri.Query
+import se.ade.kuri.Unescaped
 
 private val KuriMemberName = Kuri::class.asTypeName()
 
@@ -47,7 +48,15 @@ class UriTemplateFunctionFactory(val logger: KSPLogger) {
                 when(it) {
                     is PathFragment.Literal -> addStatement("append(\"${it.value}\")")
                     is PathFragment.Placeholder -> {
-                        addStatement("append(%T.encodeUrlPathParam(${it.name}))", KuriMemberName)
+                        val unescaped = parameters.firstOrNull { p -> it.name == p.name?.getShortName() }
+                            ?.isAnnotationPresent(Unescaped::class)
+                            ?: false
+
+                        if(unescaped) {
+                            addStatement("append(${it.name})")
+                        } else {
+                            addStatement("append(%T.encodeUrlPathParam(${it.name}))", KuriMemberName)
+                        }
                     }
                 }
             }

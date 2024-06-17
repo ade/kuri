@@ -76,5 +76,11 @@ class PathParamTest {
         val impl: TestPathsProvider = KuriTestPathsProvider
         impl.pathParamAny(MakesUnsafeChars()) shouldBe "path/%2Fhello%20world%20%26%20have%20a%20nice%20day%2F/data"
     }
+
+    @Test
+    fun `URI builder - path param - should be unescaped`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.pathParamUnescaped("my/custom/fragment") shouldBe "begin/my/custom/fragment/end"
+    }
 }
 
