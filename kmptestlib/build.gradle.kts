@@ -9,8 +9,12 @@ project.group = groupId
 
 kotlin {
     jvm()
-    android()
-    ios()
+    androidTarget()
+    iosX64()
+
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -41,7 +45,7 @@ ksp {
 }
 
 android {
-    compileSdk = androidConfig.versions.compileSdk.get().toInt()
+    compileSdk = libs.versions.androidCompileSdk.get().toInt()
     namespace = groupId
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 }
