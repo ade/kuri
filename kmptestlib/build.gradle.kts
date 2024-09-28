@@ -1,3 +1,8 @@
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
+
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.ksp)
@@ -33,10 +38,11 @@ kotlin {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-    if (name != "kspCommonMainKotlinMetadata") {
-        dependsOn("kspCommonMainKotlinMetadata")
-    }
+tasks.withType<KotlinJvmCompile>().configureEach {
+    dependsOn("kspCommonMainKotlinMetadata")
+}
+tasks.withType<KotlinNativeCompile>().configureEach {
+    dependsOn("kspCommonMainKotlinMetadata")
 }
 
 ksp {
