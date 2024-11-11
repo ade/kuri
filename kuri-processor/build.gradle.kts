@@ -23,6 +23,10 @@ project.extensions.getByType<PublishingExtension>().apply {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 dependencies {
     implementation(project(":kuri-api"))
 

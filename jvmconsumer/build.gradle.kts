@@ -26,4 +26,7 @@ dependencies {
     implementation(project(":kuri-api"))
     implementation(project(":kmptestlib"))
     ksp(project(":kuri-processor"))
+
+    implementation(kotlin("test"))
+    implementation(libs.kotest.assertions.core)
 }

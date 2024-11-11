@@ -9,8 +9,8 @@ project.group = groupId
 
 kotlin {
     jvm()
-    android()
-    ios()
+    androidTarget()
+    iosArm64()
 
     sourceSets {
         val commonMain by getting {
@@ -23,16 +23,23 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("io.kotest:kotest-assertions-core:5.1.0")
+                implementation(libs.kotest.assertions.core)
             }
         }
     }
+
+    jvmToolchain(17)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
     if (name != "kspCommonMainKotlinMetadata") {
         dependsOn("kspCommonMainKotlinMetadata")
     }
+}
+
+dependencies {
+    // Run KSP on [commonMain] code
+    add("kspCommonMainMetadata", project(":kuri-processor"))
 }
 
 ksp {

@@ -120,7 +120,7 @@ class KuriProcessor(
                 allParamNames.add(paramName)
 
                 val prop = PropertySpec.builder(paramName, KuriTokenSpec::class)
-                prop.initializer("%T(name = %S, type = ${param.type.resolve().toClassName()}::class, query = $query, optional = $optional)", KuriTokenSpec::class, paramName)
+                prop.initializer("%T(name = %S, type = ${param.type.resolve().toClassName().reflectionName()}::class, query = $query, optional = $optional)", KuriTokenSpec::class, paramName)
 
                 obj.addProperty(prop.build())
             }

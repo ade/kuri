@@ -36,6 +36,9 @@ interface ExamplePaths {
 
     @UriTemplate("group/{group}/item/{item}")
     fun queryParamCustomNameExample(group: Int, item: Int, @Query("otherNameMapping") amount: Int): String
+
+    @UriTemplate("first/{param}/third")
+    fun valueClassTest(param: ExampleValueClass): String
 }
 
 interface Decoy {

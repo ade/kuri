@@ -10,8 +10,14 @@ version = project.properties["version"]!!.toString()
 
 kotlin {
     jvm()
-    android()
-    ios()
+    androidTarget()
+    iosArm64()
+    iosSimulatorArm64()
+    watchosX64()
+    watchosSimulatorArm64()
+    watchosDeviceArm64()
+
+    jvmToolchain(17)
 }
 
 android {

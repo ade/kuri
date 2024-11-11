@@ -4,14 +4,15 @@
 Kuri - Kotlin Multiplatform URI Tools.
 
 Code-generates safe URIs from type-safe arguments in Kotlin using KSP.
+Only path and query parameters are supported for now.
 
 Currently in an experimental/exploratory phase.
 
 Usage
 1. add dependency to kuri's api and ksp processor (and ksp plugin - see instructions elsewhere)
    ```
-   implementation("se.ade.kuri.api:kuri-api:0.0.7")
-   ksp("se.ade.kuri.processor:kuri-processor:0.0.7")
+   implementation("se.ade.kuri.api:kuri-api:0.1.0")
+   ksp("se.ade.kuri.processor:kuri-processor:0.1.0")
    ```
 2. specify interface:
     ```
