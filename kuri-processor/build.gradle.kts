@@ -1,26 +1,7 @@
 plugins {
     kotlin("jvm")
     id("maven-publish")
-    id("convention.publication")
-}
-
-java {
-    withJavadocJar()
-
-    //Creates sourcesJar task
-    withSourcesJar()
-}
-
-project.extensions.getByType<PublishingExtension>().apply {
-    publications {
-        create<MavenPublication>("kuri") {
-            groupId = project.properties["groupId"]!!.toString()
-            from(components["kotlin"])
-
-            //Doesn't get uploaded if we don't specify it explicitly for some reason
-            artifact(tasks.getByName("sourcesJar"))
-        }
-    }
+    id("convention.publish")
 }
 
 kotlin {

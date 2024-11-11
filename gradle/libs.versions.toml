@@ -1,4 +1,5 @@
 [versions]
+gradleMavenPublishPlugin = "0.30.0"
 kotestAssertionsCore = "5.7.2"
 ksp = "2.0.21-1.0.27"
 kotlin = "2.0.21"
@@ -6,6 +7,7 @@ agp = "8.2.0"
 kotlinpoet = "2.0.0"
 
 [libraries]
+gradle-maven-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "gradleMavenPublishPlugin" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotestAssertionsCore" }
 ksp-api = { group = "com.google.devtools.ksp", name = "symbol-processing-api", version.ref = "ksp" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
@@ -16,3 +18,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidlib = { id = "com.android.library", version.ref = "agp" }
 kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+gradle-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "gradleMavenPublishPlugin" }

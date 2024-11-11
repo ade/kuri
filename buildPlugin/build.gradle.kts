@@ -14,4 +14,5 @@ repositories {
 
 dependencies {
     implementation(kotlin("gradle-plugin"))
+    implementation(libs.gradle.maven.publish.plugin)
 }

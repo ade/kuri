@@ -1,7 +1,7 @@
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.androidlib)
-    id("convention.publication")
+    id("convention.publish")
 }
 
 val groupId = project.properties["groupId"]!!.toString()
