@@ -6,7 +6,7 @@ plugins {
 
 mavenPublishing {
 	group = "se.ade.kuri"
-	publishToMavenCentral(SonatypeHost.S01)
+	publishToMavenCentral(SonatypeHost.S01, automaticRelease = true)
 	signAllPublications()
 
 
