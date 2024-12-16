@@ -20,6 +20,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("androidConfig") {
             version("compileSdk", "34")
+            version("minSdk", "21")
         }
     }
 

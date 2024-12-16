@@ -22,6 +22,9 @@ kotlin {
 
 android {
     compileSdk = androidConfig.versions.compileSdk.get().toInt()
+    defaultConfig {
+        minSdk = androidConfig.versions.minSdk.get().toInt()
+    }
     namespace = groupId
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 }
