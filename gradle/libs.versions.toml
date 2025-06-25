@@ -1,5 +1,5 @@
 [versions]
-gradleMavenPublishPlugin = "0.30.0"
+gradleMavenPublishPlugin = "0.33.0"
 kotestAssertionsCore = "5.7.2"
 ksp = "2.0.21-1.0.27"
 kotlin = "2.0.21"

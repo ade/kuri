@@ -2,8 +2,10 @@ package se.ade.kuri.processor
 
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
+import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -24,7 +26,7 @@ sealed class PathFragment {
 
 @OptIn(KspExperimental::class)
 class UriTemplateFunctionFactory(val logger: KSPLogger) {
-    fun create(funName: String, template: String, parameters: List<KSValueParameter>): FunSpec {
+    fun create(resolver: Resolver, funName: String, template: String, parameters: List<KSValueParameter>): FunSpec {
 
         val retFunc = FunSpec.builder(funName)
             .addModifiers(KModifier.OVERRIDE)
@@ -60,11 +62,34 @@ class UriTemplateFunctionFactory(val logger: KSPLogger) {
                     }
                 }
             }
-            val nullableQueryParams = queryParams.filter { it.type.resolve().isMarkedNullable }
-            val allNullable = queryParams == nullableQueryParams
+
+            val listType = resolver.getClassDeclarationByName("kotlin.collections.Collection")!!.asStarProjectedType()
+
+            // We check so that we don't append the "?" query string when there are no query parameters to add.
+            // Some parameters are nullable - if all are nullable, we can skip the "?" query string.
+            // Additionally - Collections can be empty, so we check for that as well.
+            val paramChecks = queryParams.map {
+                val resolvedType = it.type.resolve()
+
+                if(listType.isAssignableFrom(it.type.resolve())) {
+                    "!${it.name?.getShortName()}.isEmpty()"
+                } else if(listType.makeNullable().isAssignableFrom(it.type.resolve())) {
+                    "${it.name?.getShortName()} != null && !${it.name?.getShortName()}.isEmpty()"
+                } else if(resolvedType.isMarkedNullable) {
+                    "${it.name?.getShortName()} != null"
+                } else  {
+                    // This parameter is always present, which means we'll always append the "?" query string.
+                    // We save a null value here in order to know that we should not add any check.
+                    null
+                }
+            }
+
+            val addChecks = paramChecks.isNotEmpty() && !paramChecks.contains(null)
+
             if (queryParams.isNotEmpty()) {
-                if(allNullable) {
-                    val nullChecks = nullableQueryParams.joinToString(separator = " || ") { "${it.name?.getShortName()} != null" }
+                if(addChecks) {
+                   // if(listChecks.isNotEmpty()) throw RuntimeException("LÖl $listChecks")
+                    val nullChecks = paramChecks.joinToString(separator = " || ")
                     beginControlFlow("if($nullChecks)")
                 }
 
@@ -88,7 +113,7 @@ class UriTemplateFunctionFactory(val logger: KSPLogger) {
                 unindent()
                 addStatement("))")
 
-                if(allNullable) {
+                if(addChecks) {
                     endControlFlow()
                 }
             }

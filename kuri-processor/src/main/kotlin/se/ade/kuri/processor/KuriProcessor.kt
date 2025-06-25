@@ -49,13 +49,13 @@ class KuriProcessor(
         if (!symbols.iterator().hasNext())
             return emptyList()
 
-        symbols.forEach { it.accept(Visitor(), Unit) }
+        symbols.forEach { it.accept(Visitor(resolver), Unit) }
 
         return symbols.filterNot { it.validate() }.toList()
     }
 
     @OptIn(KspExperimental::class)
-    inner class Visitor : KSVisitorVoid() {
+    inner class Visitor(val resolver: Resolver) : KSVisitorVoid() {
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
             assert (classDeclaration.classKind == ClassKind.INTERFACE) {
                 "Only interface can be annotated with @$kuriProviderName"
@@ -116,11 +116,16 @@ class KuriProcessor(
                     ?: throw IllegalStateException("No parameter name available")
                 val query = param.isAnnotationPresent(Query::class)
                 val optional = param.type.resolve().nullability == Nullability.NULLABLE
+                val type = if(param.type.resolve().arguments.isNotEmpty()) {
+                    param.type.resolve().declaration.qualifiedName?.asString()
+                } else {
+                    param.type.resolve().makeNotNullable().toClassName()
+                }
 
                 allParamNames.add(paramName)
 
                 val prop = PropertySpec.builder(paramName, KuriTokenSpec::class)
-                prop.initializer("%T(name = %S, type = ${param.type.resolve().toClassName().reflectionName()}::class, query = $query, optional = $optional)", KuriTokenSpec::class, paramName)
+                prop.initializer("%T(name = %S, type = $type::class, query = $query, optional = $optional)", KuriTokenSpec::class, paramName)
 
                 obj.addProperty(prop.build())
             }
@@ -200,7 +205,7 @@ class KuriProcessor(
                 )
             }
 
-            return uriTemplateFunctionFactory.create(funName, templateInternal, def.parameters)
+            return uriTemplateFunctionFactory.create(resolver, funName, templateInternal, def.parameters)
         }
     }
 }

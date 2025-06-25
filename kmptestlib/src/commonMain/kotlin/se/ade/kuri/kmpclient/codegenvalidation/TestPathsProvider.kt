@@ -54,4 +54,16 @@ interface TestPathsProvider {
 
     @UriTemplate("somepath/static")
     fun queryParamAny(@Query foo: Any): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamList(@Query foo: List<String>): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamListNullable(@Query foo: List<String>?): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamSet(@Query foo: Set<String>): String
+
+    @UriTemplate("somepath/static")
+    fun queryParamSetNullable(@Query foo: Set<String>?): String
 }

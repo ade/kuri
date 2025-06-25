@@ -86,17 +86,34 @@ private fun buildUrlKeyValuesEncoded(map: Map<String, Any?>, assigner: Char = '=
             if(it.value != null) {
                 if (this.isNotEmpty()) append(separator)
 
-                val value: String = when (val input = it.value) {
-                    is Boolean -> if(input) "1" else "0"
-                    else -> it.value.toString()
+                if(it.value is Collection<*>) {
+                    // encode each item in the list with the same key, e.g. key=value1&key=value2
+                    (it.value as Collection<*>).forEachIndexed { index, value ->
+                        if (index > 0) append(separator)
+                        appendKeyValuePair(it.key, value, assigner)
+                    }
+                } else {
+                    // Standard key=value pair
+                    appendKeyValuePair(it.key, it.value, assigner)
                 }
-
-                append(encodeUrlQueryPart(it.key))
-                append(assigner)
-                append(encodeUrlQueryPart(value))
             }
         }
     }
+}
+
+private fun StringBuilder.appendKeyValuePair(
+    key: String,
+    value: Any?,
+    assigner: Char = '=') {
+
+    val value: String = when (val input = value) {
+        is Boolean -> if(input) "1" else "0"
+        else -> value.toString()
+    }
+
+    append(encodeUrlQueryPart(key))
+    append(assigner)
+    append(encodeUrlQueryPart(value))
 }
 
 private fun Char.percentEncode(sink: StringBuilder) {

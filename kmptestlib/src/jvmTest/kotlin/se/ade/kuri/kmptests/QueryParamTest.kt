@@ -92,5 +92,53 @@ class QueryParamTest {
         val impl: TestPathsProvider = KuriTestPathsProvider
         impl.queryParamAny(MakesUnsafeChars()) shouldBe "somepath/static?foo=/hello%20world%20%26%20have%20a%20nice%20day/"
     }
+
+    @Test
+    fun `URI builder - query param - List`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamList(listOf("a", "b", "c")) shouldBe "somepath/static?foo=a&foo=b&foo=c"
+    }
+
+    @Test
+    fun `URI builder - query param - List - empty`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamList(emptyList()) shouldBe "somepath/static"
+    }
+
+    @Test
+    fun `URI builder - query param - List - null`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamListNullable(null) shouldBe "somepath/static"
+    }
+
+    @Test
+    fun `URI builder - query param - List - nullable but not null`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamListNullable(listOf("a", "b", "c")) shouldBe "somepath/static?foo=a&foo=b&foo=c"
+    }
+
+    @Test
+    fun `URI builder - query param - Set`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamSet(setOf("a", "b", "c")) shouldBe "somepath/static?foo=a&foo=b&foo=c"
+    }
+
+    @Test
+    fun `URI builder - query param - Set - empty`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamSet(emptySet()) shouldBe "somepath/static"
+    }
+
+    @Test
+    fun `URI builder - query param - Set - null`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamSetNullable(null) shouldBe "somepath/static"
+    }
+
+    @Test
+    fun `URI builder - query param - Set - nullable but not null`() {
+        val impl: TestPathsProvider = KuriTestPathsProvider
+        impl.queryParamSetNullable(setOf("a", "b", "c")) shouldBe "somepath/static?foo=a&foo=b&foo=c"
+    }
 }
 
